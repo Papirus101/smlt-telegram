@@ -1,11 +1,10 @@
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ContentType
-from aiogram.enums import ParseMode
 from dependency_injector.wiring import Provide, inject
 
 from containers import BotContainer
-from filters.member_filter import SelfMember
+from filters.member_filter import SelfMember, AdminFilter
 from handlers.chat.interface import AbstractChatHandler
 
 chat_router = Router()
@@ -29,7 +28,7 @@ async def new_member(
     await add_bot_to_chat_handler.new_member(message=message)
 
 
-@chat_router.message(Command("update_start_message"), F.content_type(ContentType.PHOTO))
+@chat_router.message(Command("update_start_message"), F.content_type(ContentType.PHOTO), AdminFilter())
 @inject
 async def update_start_message_with_photo(
         message: Message,
@@ -38,7 +37,7 @@ async def update_start_message_with_photo(
     await add_bot_to_chat_handler.update_start_message(message=message)
 
 
-@chat_router.message(Command("update_start_message"))
+@chat_router.message(Command("update_start_message"), AdminFilter())
 @inject
 async def update_start_message(
         message: Message,
