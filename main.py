@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from aiogram import Dispatcher, Bot
 from aiogram.enums import ParseMode
@@ -29,10 +30,12 @@ async def main() -> None:
     dp = Dispatcher()
     bot = Bot(container.config.bot.token(), parse_mode=ParseMode.HTML)
     await bot.delete_webhook(drop_pending_updates=True)
+    await register_commands(bot)
 
     dp.include_router(chat_handler.chat_router)
     bot_info = await bot.me()
-    logger.info(f"Запустили бота {bot_info.first_name} @{bot_info.username}")
+    logger.info(f"Запустили бота {bot_info.first_name} @{bot_info.username} {bot_info.id}")
+    os.environ["BOT_ID"] = str(bot_info.id)
 
     bot.container = container
 

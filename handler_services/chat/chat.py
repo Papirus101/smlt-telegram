@@ -15,6 +15,8 @@ class ChatHandler(AbstractChatHandler):
         start_data = await self.chat_service.get_start_message(chat_id=message.chat.id)
         if not start_data:
             return
+        if not message.new_chat_members:
+            return
         for chat_member in message.new_chat_members:
             message_text = start_data["message"].format(
                 first_name=chat_member.first_name,
