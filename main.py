@@ -1,16 +1,46 @@
-# This is a sample Python script.
+import asyncio
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+from aiogram import Dispatcher, Bot
+from aiogram.enums import ParseMode
+from aiogram.types import BotCommand, BotCommandScopeDefault
+from loguru import logger
+
+from containers import BotContainer
+
+from handlers.chat import chat_handler
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+async def register_commands(bot: Bot):
+    commands = [
+        BotCommand(command="start_message", description="Текущее приветствие"),
+        BotCommand(command="update_start_message", description="Обновить приветствие"),
+        BotCommand(command="help", description="Помощь"),
+    ]
+    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+async def main() -> None:
+    container = BotContainer()
+    container.wire(
+        modules=[
+            chat_handler,
+        ]
+    )
+    dp = Dispatcher()
+    bot = Bot(container.config.bot.token(), parse_mode=ParseMode.HTML)
+    await bot.delete_webhook(drop_pending_updates=True)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    dp.include_router(chat_handler.chat_router)
+    bot_info = await bot.me()
+    logger.info(f"Запустили бота {bot_info.first_name} @{bot_info.username}")
+
+    bot.container = container
+
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
